@@ -294,6 +294,28 @@ select.edit-input {
   padding-right: 8px;
 }
 
+.form-group input[type="date"],
+.dc-field input[type="date"],
+input.edit-input[type="date"] {
+  -webkit-appearance: auto;
+  appearance: auto;
+  text-align: left;
+  padding-right: 8px;
+}
+
+.form-group input[type="date"]::-webkit-date-and-time-value,
+.dc-field input[type="date"]::-webkit-date-and-time-value,
+input.edit-input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator,
+.dc-field input[type="date"]::-webkit-calendar-picker-indicator,
+input.edit-input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  display: block;
+}
+
 .form-group textarea,
 .dc-field textarea {
   min-height: 64px;

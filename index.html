@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Amber · Allergy Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- 顶部状态栏 -->
+  <header class="top-bar">
+    <div class="top-bar-title">Amber <span id="top-bar-breed">金渐层</span></div>
+    <div class="top-bar-actions">
+      <button class="top-bar-btn" onclick="exportJSON()">导出</button>
+    </div>
+  </header>
+
+  <!-- 状态条 -->
+  <div class="status-strip" id="overview-bar">
+    <div class="status-item"><span class="status-label">阶段</span><span class="status-value">—</span></div>
+    <div class="status-item"><span class="status-label">天数</span><span class="status-value">—</span></div>
+    <div class="status-item"><span class="status-label">环孢素</span><span class="status-value">—</span></div>
+    <div class="status-item"><span class="status-label">日志</span><span class="status-value">0</span></div>
+  </div>
+
+  <!-- 主内容 -->
+  <main class="main-content" id="main-content"></main>
+
+  <!-- 底部导航 -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <a class="nav-tab active" data-view="daily" href="#">
+      <span class="nav-tab-icon">📝</span>记录
+    </a>
+    <a class="nav-tab" data-view="medication" href="#">
+      <span class="nav-tab-icon">💊</span>用药
+    </a>
+    <a class="nav-tab" data-view="trends" href="#">
+      <span class="nav-tab-icon">📈</span>趋势
+    </a>
+    <a class="nav-tab" data-view="overview" href="#">
+      <span class="nav-tab-icon">📋</span>概览
+    </a>
+    <a class="nav-tab" data-view="more" href="#">
+      <span class="nav-tab-icon">···</span>更多
+    </a>
+  </nav>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

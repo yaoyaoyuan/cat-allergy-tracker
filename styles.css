@@ -59,6 +59,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  overflow: hidden;
 }
 
 .top-bar-left {
@@ -66,14 +67,33 @@ body {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .top-bar-avatar {
   width: 28px;
   height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  max-width: 28px;
+  max-height: 28px;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--border);
+  flex-shrink: 0;
+  display: block;
+}
+
+/* 兜底：即使头像 class 丢失，也限制顶部图片尺寸 */
+.top-bar-left > img {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  max-width: 28px !important;
+  max-height: 28px !important;
+  object-fit: cover;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 

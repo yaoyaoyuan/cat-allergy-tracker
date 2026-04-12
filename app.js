@@ -5,6 +5,7 @@
 
 // ───────── 常量 ─────────
 const STORAGE_KEY = 'cat-allergy-tracker';
+const BACKUP_APPLIED_KEY = 'cat-allergy-backup-applied-v1';
 
 const STAGES = [
   { id: 0, name: '基线建立', desc: '录入猫咪档案与既往信息' },
@@ -341,7 +342,27 @@ function loadData() {
 }
 
 async function tryLoadBundledBackupOnFirstRun() {
-  if (!isFreshInstall) return false;
+  if (localStorage.getItem(BACKUP_APPLIED_KEY) === '1') return false;
+  const hasRealProgress = !!(
+    appData
+    && appData.profile
+    && appData.profile.completed
+    && Array.isArray(appData.dailyLogs)
+    && appData.dailyLogs.length > 7
+  );
+  const isStarterState = !!(
+    appData
+    && appData.profile
+    && !appData.profile.completed
+    && appData.stageStatus
+    && appData.stageStatus.currentStage === 0
+    && Array.isArray(appData.dailyLogs)
+    && appData.dailyLogs.length <= 7
+  );
+
+  if (!isFreshInstall && !isStarterState) return false;
+  if (hasRealProgress) return false;
+
   try {
     const res = await fetch('cat-allergy-tracker-2026-04-12.json', { cache: 'no-store' });
     if (!res.ok) return false;
@@ -349,6 +370,7 @@ async function tryLoadBundledBackupOnFirstRun() {
     if (!imported.profile || !imported.stageStatus || !Array.isArray(imported.dailyLogs)) return false;
     appData = mergeDefaults(createDefaultData(), imported);
     saveData();
+    localStorage.setItem(BACKUP_APPLIED_KEY, '1');
     showToast('已自动恢复备份数据');
     return true;
   } catch (e) {

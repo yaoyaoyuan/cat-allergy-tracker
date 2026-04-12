@@ -638,10 +638,12 @@ function updateNav() {
 
 function updateHeroBreed() {
   const el = document.getElementById('top-bar-breed');
+  const nameEl = document.getElementById('top-bar-name');
   if (!el || !appData) return;
   const p = appData.profile;
   const age = calcAge(p.birthDate);
   const sex = p.sex === '母' ? '♀' : '♂';
+  if (nameEl) nameEl.textContent = p.name || 'Amber葵';
   el.textContent = `${p.breed || ''} · ${age} · ${sex}`;
 }
 

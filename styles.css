@@ -61,6 +61,22 @@ body {
   justify-content: space-between;
 }
 
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.top-bar-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
 .top-bar-title {
   font-size: 0.92rem;
   font-weight: 600;

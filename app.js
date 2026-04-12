@@ -209,6 +209,7 @@ const DAILY_PAGE_SIZE = 20;
 let editingLogDate = null; // 正在编辑的日志日期
 let parasiteSortOrder = 'desc'; // desc: 新到旧, asc: 旧到新
 let editingParasiteIndex = null;
+let isFreshInstall = false;
 
 // ───────── 持久化 ─────────
 function saveData() {
@@ -223,6 +224,7 @@ function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
+      isFreshInstall = false;
       const parsed = JSON.parse(raw);
       // 合并默认字段（兼容旧版本缺失字段）
       appData = mergeDefaults(createDefaultData(), parsed);
@@ -327,12 +329,30 @@ function loadData() {
 
       alignEliminationStartDateFromLogs();
     } else {
+      isFreshInstall = true;
       appData = createDefaultData();
       alignEliminationStartDateFromLogs();
     }
   } catch (e) {
+    isFreshInstall = true;
     appData = createDefaultData();
     alignEliminationStartDateFromLogs();
+  }
+}
+
+async function tryLoadBundledBackupOnFirstRun() {
+  if (!isFreshInstall) return false;
+  try {
+    const res = await fetch('cat-allergy-tracker-2026-04-12.json', { cache: 'no-store' });
+    if (!res.ok) return false;
+    const imported = await res.json();
+    if (!imported.profile || !imported.stageStatus || !Array.isArray(imported.dailyLogs)) return false;
+    appData = mergeDefaults(createDefaultData(), imported);
+    saveData();
+    showToast('已自动恢复备份数据');
+    return true;
+  } catch (e) {
+    return false;
   }
 }
 
@@ -2023,8 +2043,9 @@ function escapeHtml(str) {
 }
 
 // ───────── 初始化 ─────────
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   loadData();
+  await tryLoadBundledBackupOnFirstRun();
 
   // 底部导航绑定
   document.querySelectorAll('.nav-tab').forEach(el => {

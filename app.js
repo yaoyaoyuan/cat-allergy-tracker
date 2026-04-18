@@ -7,6 +7,37 @@
 const STORAGE_KEY = 'cat-allergy-tracker';
 const BACKUP_APPLIED_KEY = 'cat-allergy-backup-applied-v1';
 
+// ───────── Firebase 云同步 ─────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDgvwldkipc0rqKfYDqDEWxRnCzk6Ur2lo",
+  authDomain: "amber-kui.firebaseapp.com",
+  projectId: "amber-kui",
+  storageBucket: "amber-kui.firebasestorage.app",
+  messagingSenderId: "157220123769",
+  appId: "1:157220123769:web:b1ecd814dd2ae5dc3150a8"
+};
+firebase.initializeApp(firebaseConfig);
+const fireDb = firebase.firestore();
+const FIRE_DOC = fireDb.collection('trackers').doc('amber');
+
+let cloudSyncPending = false;
+
+function saveToCloud() {
+  if (cloudSyncPending) return;
+  cloudSyncPending = true;
+  FIRE_DOC.set(JSON.parse(JSON.stringify(appData)))
+    .then(() => { cloudSyncPending = false; })
+    .catch(() => { cloudSyncPending = false; });
+}
+
+async function loadFromCloud() {
+  try {
+    const snap = await FIRE_DOC.get();
+    if (snap.exists) return snap.data();
+  } catch (e) { /* 离线时静默失败 */ }
+  return null;
+}
+
 const STAGES = [
   { id: 0, name: '基线建立', desc: '录入猫咪档案与既往信息' },
   { id: 1, name: '驱虫记录', desc: '完成驱虫记录并确认驱虫执行' },
@@ -216,6 +247,7 @@ let isFreshInstall = false;
 function saveData() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    saveToCloud();
   } catch (e) {
     showToast('保存失败：存储空间可能已满', 'error');
   }
@@ -2069,6 +2101,19 @@ function escapeHtml(str) {
 // ───────── 初始化 ─────────
 document.addEventListener('DOMContentLoaded', async function () {
   loadData();
+
+  // 尝试从云端加载更新的数据
+  const cloudData = await loadFromCloud();
+  if (cloudData && Array.isArray(cloudData.dailyLogs)) {
+    const localCount = appData.dailyLogs ? appData.dailyLogs.length : 0;
+    const cloudCount = cloudData.dailyLogs.length;
+    if (cloudCount > localCount) {
+      appData = mergeDefaults(createDefaultData(), cloudData);
+      saveData();
+      showToast('已从云端同步最新数据');
+    }
+  }
+
   await tryLoadBundledBackupOnFirstRun();
 
   // 底部导航绑定

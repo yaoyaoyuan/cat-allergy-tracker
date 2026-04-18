@@ -56,6 +56,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDgvwldkipc0rqKfYDqDEWxRnCzk6Ur2lo",
@@ -69,11 +70,17 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const DOC_REF = doc(db, "trackers", "amber-kui");
+    const auth = getAuth(app);
 
-    // Expose to app.js
-    window._firebase = { db, DOC_REF, setDoc, getDoc, onSnapshot };
-    window.dispatchEvent(new Event('firebase-ready'));
+    // Sign in anonymously, then expose Firebase to app.js
+    signInAnonymously(auth).catch(e => console.warn('Auth failed:', e));
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const DOC_REF = doc(db, "trackers", user.uid);
+        window._firebase = { db, DOC_REF, setDoc, getDoc, onSnapshot, uid: user.uid };
+        window.dispatchEvent(new Event('firebase-ready'));
+      }
+    });
   </script>
 
   <script src="app.js"></script>

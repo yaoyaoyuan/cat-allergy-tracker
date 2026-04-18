@@ -216,6 +216,7 @@ let isFreshInstall = false;
 function saveData() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    syncToFirebase();
   } catch (e) {
     showToast('保存失败：存储空间可能已满', 'error');
   }
@@ -2052,6 +2053,7 @@ function clearAllData() {
     if (confirm('再次确认：真的要删除所有记录吗？')) {
       localStorage.removeItem(STORAGE_KEY);
       appData = createDefaultData();
+      saveData();
       showToast('数据已清空');
       switchView('overview');
     }
@@ -2064,6 +2066,113 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.appendChild(document.createTextNode(String(str)));
   return div.innerHTML;
+}
+
+// ───────── Firebase 云同步 ─────────
+let _firebaseSyncTimer = null;
+let _firebaseReady = false;
+let _ignoreNextSnapshot = false;
+
+function syncToFirebase() {
+  if (!_firebaseReady || !window._firebase) return;
+  clearTimeout(_firebaseSyncTimer);
+  _firebaseSyncTimer = setTimeout(async () => {
+    try {
+      _ignoreNextSnapshot = true;
+      await window._firebase.setDoc(window._firebase.DOC_REF, {
+        data: JSON.stringify(appData),
+        updatedAt: new Date().toISOString(),
+        device: navigator.userAgent.substring(0, 80)
+      });
+      updateSyncIndicator('synced');
+    } catch (e) {
+      updateSyncIndicator('error');
+      console.warn('Firebase sync failed:', e);
+    }
+  }, 1500);
+}
+
+async function loadFromFirebase() {
+  if (!window._firebase) return false;
+  try {
+    const snap = await window._firebase.getDoc(window._firebase.DOC_REF);
+    if (snap.exists()) {
+      const cloudData = JSON.parse(snap.data().data);
+      const localLogs = (appData && appData.dailyLogs) ? appData.dailyLogs.length : 0;
+      const cloudLogs = (cloudData && cloudData.dailyLogs) ? cloudData.dailyLogs.length : 0;
+      if (cloudLogs >= localLogs) {
+        appData = mergeDefaults(createDefaultData(), cloudData);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    console.warn('Firebase load failed:', e);
+    return false;
+  }
+}
+
+function listenToFirebase() {
+  if (!window._firebase) return;
+  window._firebase.onSnapshot(window._firebase.DOC_REF, (snap) => {
+    if (_ignoreNextSnapshot) { _ignoreNextSnapshot = false; return; }
+    if (!snap.exists()) return;
+    try {
+      const cloudData = JSON.parse(snap.data().data);
+      const cloudLogs = (cloudData && cloudData.dailyLogs) ? cloudData.dailyLogs.length : 0;
+      const localLogs = (appData && appData.dailyLogs) ? appData.dailyLogs.length : 0;
+      if (cloudLogs > localLogs) {
+        appData = mergeDefaults(createDefaultData(), cloudData);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        renderCurrentView();
+        showToast('已从云端同步最新数据 ☁️');
+      }
+    } catch (e) { /* ignore parse errors */ }
+  });
+}
+
+function updateSyncIndicator(status) {
+  let el = document.getElementById('sync-status');
+  if (!el) {
+    el = document.createElement('span');
+    el.id = 'sync-status';
+    el.style.cssText = 'font-size:0.65rem;margin-left:6px;opacity:0.7;';
+    const actions = document.querySelector('.top-bar-actions');
+    if (actions) actions.prepend(el);
+  }
+  if (status === 'synced') {
+    el.textContent = '☁️ 已同步';
+    el.style.color = '#4a9d6e';
+  } else if (status === 'error') {
+    el.textContent = '⚠️ 同步失败';
+    el.style.color = '#c94a4a';
+  } else {
+    el.textContent = '⏳ 同步中...';
+    el.style.color = '#c49034';
+  }
+}
+
+function initFirebaseSync() {
+  if (window._firebase) {
+    _firebaseReady = true;
+    loadFromFirebase().then((loaded) => {
+      if (loaded) renderCurrentView();
+      updateSyncIndicator('synced');
+      listenToFirebase();
+      syncToFirebase();
+    });
+  } else {
+    window.addEventListener('firebase-ready', () => {
+      _firebaseReady = true;
+      loadFromFirebase().then((loaded) => {
+        if (loaded) renderCurrentView();
+        updateSyncIndicator('synced');
+        listenToFirebase();
+        syncToFirebase();
+      });
+    });
+  }
 }
 
 // ───────── 初始化 ─────────
@@ -2081,4 +2190,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // 初始渲染
   renderCurrentView();
+
+  // 启动 Firebase 云同步
+  initFirebaseSync();
 });

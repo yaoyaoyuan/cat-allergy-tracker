@@ -52,6 +52,30 @@
   <!-- Toast -->
   <div class="toast" id="toast"></div>
 
+  <!-- Firebase SDK (CDN) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDgvwldkipc0rqKfYDqDEWxRnCzk6Ur2lo",
+      authDomain: "amber-kui.firebaseapp.com",
+      projectId: "amber-kui",
+      storageBucket: "amber-kui.firebasestorage.app",
+      messagingSenderId: "157220123769",
+      appId: "1:157220123769:web:b1ecd814dd2ae5dc3150a8",
+      measurementId: "G-QFCFK98MKR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const DOC_REF = doc(db, "trackers", "amber-kui");
+
+    // Expose to app.js
+    window._firebase = { db, DOC_REF, setDoc, getDoc, onSnapshot };
+    window.dispatchEvent(new Event('firebase-ready'));
+  </script>
+
   <script src="app.js"></script>
 </body>
 </html>

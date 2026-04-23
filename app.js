@@ -2177,33 +2177,44 @@ function initFirebaseSync() {
 // ───────── 登录管理 ─────────
 function initAuth() {
   const ready = () => {
-    const { auth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, ALLOWED_EMAIL } = window._auth;
+    const { auth, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, ALLOWED_EMAIL } = window._auth;
+
+    // Handle redirect result (for mobile)
+    getRedirectResult(auth).catch(() => {});
 
     onAuthStateChanged(auth, (user) => {
+      const loginScreen = document.getElementById('login-screen');
+      const appShell = document.getElementById('app-shell');
       if (user && user.email === ALLOWED_EMAIL) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-shell').style.display = '';
+        loginScreen.style.display = 'none';
+        appShell.style.display = '';
         initApp();
       } else if (user) {
-        // Wrong account
         const { signOut } = window._auth;
         signOut(auth);
         document.getElementById('login-error').textContent = '该账号无权限访问，请使用授权邮箱登录';
       } else {
-        document.getElementById('login-screen').style.display = '';
-        document.getElementById('app-shell').style.display = 'none';
+        loginScreen.style.display = '';
+        appShell.style.display = 'none';
       }
     });
 
-    document.getElementById('google-login-btn').addEventListener('click', async () => {
-      const provider = new GoogleAuthProvider();
-      try {
+    const loginBtn = document.getElementById('google-login-btn');
+    if (loginBtn) {
+      loginBtn.onclick = async () => {
+        const provider = new GoogleAuthProvider();
         document.getElementById('login-error').textContent = '';
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        document.getElementById('login-error').textContent = '登录失败，请重试';
-      }
-    });
+        try {
+          await signInWithPopup(auth, provider);
+        } catch (err) {
+          if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
+            signInWithRedirect(auth, provider);
+          } else {
+            document.getElementById('login-error').textContent = '登录失败: ' + (err.message || '请重试');
+          }
+        }
+      };
+    }
   };
 
   if (window._auth) ready();

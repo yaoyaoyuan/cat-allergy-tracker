@@ -476,6 +476,14 @@ input.edit-input[type="date"]::-webkit-calendar-picker-indicator {
 .daily-hint { font-size: 0.76rem; color: var(--text-tertiary); flex: 1; }
 .daily-save-btn { flex-shrink: 0; margin-left: auto; padding-left: 40px; padding-right: 40px; }
 
+.daily-save-btn-bottom {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  font-size: 0.92rem;
+}
+
 .cat-avatar-wrap { text-align: center; margin-bottom: 10px; }
 .cat-avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-light); }
 
@@ -817,8 +825,8 @@ input.edit-input[type="date"]::-webkit-calendar-picker-indicator {
 @media (max-width: 480px) {
   html { font-size: 14px; }
   .main-content { padding: 10px 10px 20px; }
-  .form-grid { grid-template-columns: 1fr; }
-  .dc-row-4, .dc-row-3, .dc-row-2 { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr 1fr; }
+  .dc-row-4, .dc-row-3, .dc-row-2 { grid-template-columns: 1fr 1fr; }
   .status-strip { padding: 8px 10px; gap: 12px; flex-wrap: wrap; }
   .log-history-table { font-size: 0.68rem; }
   .log-history-table td, .log-history-table th { padding: 4px 5px; }

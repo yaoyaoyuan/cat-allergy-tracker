@@ -2199,18 +2199,23 @@ function initAuth() {
       }
     });
 
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const loginBtn = document.getElementById('google-login-btn');
     if (loginBtn) {
       loginBtn.onclick = async () => {
         const provider = new GoogleAuthProvider();
         document.getElementById('login-error').textContent = '';
-        try {
-          await signInWithPopup(auth, provider);
-        } catch (err) {
-          if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
-            signInWithRedirect(auth, provider);
-          } else {
-            document.getElementById('login-error').textContent = '登录失败: ' + (err.message || '请重试');
+        if (isMobile) {
+          signInWithRedirect(auth, provider);
+        } else {
+          try {
+            await signInWithPopup(auth, provider);
+          } catch (err) {
+            if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
+              signInWithRedirect(auth, provider);
+            } else {
+              document.getElementById('login-error').textContent = '登录失败: ' + (err.message || '请重试');
+            }
           }
         }
       };

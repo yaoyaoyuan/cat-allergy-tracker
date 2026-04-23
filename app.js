@@ -2174,22 +2174,66 @@ function initFirebaseSync() {
   }
 }
 
-// ───────── 初始化 ─────────
-document.addEventListener('DOMContentLoaded', async function () {
-  loadData();
-  await tryLoadBundledBackupOnFirstRun();
+// ───────── 登录管理 ─────────
+function initAuth() {
+  const ready = () => {
+    const { auth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, ALLOWED_EMAIL } = window._auth;
 
-  // 底部导航绑定
-  document.querySelectorAll('.nav-tab').forEach(el => {
-    el.addEventListener('click', function (e) {
-      e.preventDefault();
-      switchView(this.dataset.view);
+    onAuthStateChanged(auth, (user) => {
+      if (user && user.email === ALLOWED_EMAIL) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-shell').style.display = '';
+        initApp();
+      } else if (user) {
+        // Wrong account
+        const { signOut } = window._auth;
+        signOut(auth);
+        document.getElementById('login-error').textContent = '该账号无权限访问，请使用授权邮箱登录';
+      } else {
+        document.getElementById('login-screen').style.display = '';
+        document.getElementById('app-shell').style.display = 'none';
+      }
     });
+
+    document.getElementById('google-login-btn').addEventListener('click', async () => {
+      const provider = new GoogleAuthProvider();
+      try {
+        document.getElementById('login-error').textContent = '';
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        document.getElementById('login-error').textContent = '登录失败，请重试';
+      }
+    });
+  };
+
+  if (window._auth) ready();
+  else window.addEventListener('firebase-ready', ready);
+}
+
+function handleLogout() {
+  if (!window._auth) return;
+  window._auth.signOut(window._auth.auth);
+}
+
+let _appInitialized = false;
+function initApp() {
+  if (_appInitialized) return;
+  _appInitialized = true;
+
+  loadData();
+  tryLoadBundledBackupOnFirstRun().then(() => {
+    document.querySelectorAll('.nav-tab').forEach(el => {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        switchView(this.dataset.view);
+      });
+    });
+    renderCurrentView();
+    initFirebaseSync();
   });
+}
 
-  // 初始渲染
-  renderCurrentView();
-
-  // 启动 Firebase 云同步
-  initFirebaseSync();
+// ───────── 初始化 ─────────
+document.addEventListener('DOMContentLoaded', function () {
+  initAuth();
 });

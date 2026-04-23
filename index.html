@@ -76,7 +76,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDgvwldkipc0rqKfYDqDEWxRnCzk6Ur2lo",
@@ -95,9 +95,8 @@
     const auth = getAuth(app);
     const DOC_REF = doc(db, "trackers", "amber-kui");
 
-    // Expose to app.js
     window._firebase = { db, DOC_REF, setDoc, getDoc, onSnapshot };
-    window._auth = { auth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider, ALLOWED_EMAIL };
+    window._auth = { auth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, GoogleAuthProvider, ALLOWED_EMAIL };
     window.dispatchEvent(new Event('firebase-ready'));
   </script>
 

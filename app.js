@@ -2083,6 +2083,7 @@ function syncToFirebase() {
         updatedAt: new Date().toISOString(),
         device: navigator.userAgent.substring(0, 80)
       });
+      appData._updatedAt = new Date().toISOString();
       updateSyncIndicator('synced');
     } catch (e) {
       updateSyncIndicator('error');
@@ -2097,9 +2098,12 @@ async function loadFromFirebase() {
     const snap = await window._firebase.getDoc(window._firebase.DOC_REF);
     if (snap.exists()) {
       const cloudData = JSON.parse(snap.data().data);
-      const localLogs = (appData && appData.dailyLogs) ? appData.dailyLogs.length : 0;
+      const cloudUpdatedAt = snap.data().updatedAt || '';
+      const localUpdatedAt = appData && appData._updatedAt ? appData._updatedAt : '';
+      // Prefer cloud if it was updated more recently, or has more logs
       const cloudLogs = (cloudData && cloudData.dailyLogs) ? cloudData.dailyLogs.length : 0;
-      if (cloudLogs >= localLogs) {
+      const localLogs = (appData && appData.dailyLogs) ? appData.dailyLogs.length : 0;
+      if (cloudUpdatedAt > localUpdatedAt || cloudLogs > localLogs) {
         appData = mergeDefaults(createDefaultData(), cloudData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
         return true;
@@ -2119,10 +2123,13 @@ function listenToFirebase() {
     if (!snap.exists()) return;
     try {
       const cloudData = JSON.parse(snap.data().data);
+      const cloudUpdatedAt = snap.data().updatedAt || '';
+      const localUpdatedAt = appData && appData._updatedAt ? appData._updatedAt : '';
       const cloudLogs = (cloudData && cloudData.dailyLogs) ? cloudData.dailyLogs.length : 0;
       const localLogs = (appData && appData.dailyLogs) ? appData.dailyLogs.length : 0;
-      if (cloudLogs > localLogs) {
+      if (cloudUpdatedAt > localUpdatedAt || cloudLogs > localLogs) {
         appData = mergeDefaults(createDefaultData(), cloudData);
+        appData._updatedAt = cloudUpdatedAt;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
         renderCurrentView();
         showToast('已从云端同步最新数据 ☁️');

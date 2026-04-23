@@ -29,6 +29,7 @@ const SKIN_APPEARANCES = ['正常', '发红', '脱毛', '结痂', '渗液', '多
 const WEATHER_OPTIONS = ['晴', '阴', '雨', '潮湿闷热', '干燥', '其他'];
 const HUMIDITY_LEVELS = ['低', '中', '高'];
 const TEMP_RANGES = ['<10°C', '10-15°C', '15-20°C', '20-25°C', '25-30°C', '30-35°C', '>35°C'];
+const FOOD_OPTIONS = ['兔肉粮和冻干', '皇家水解', '希尔斯水解', '法米娜水解'];
 
 const MIN_ELIMINATION_DAYS = 56; // 8 周
 const ELIMINATION_START_DATE = '2026-03-14';
@@ -167,7 +168,7 @@ function createDailyLog(date) {
     rashAreas: '',
     vomit: false,
     stoolScore: '4-光滑软', // BRISTOL_SCALE
-    foodIntake: '',
+    foodIntake: '兔肉粮和冻干',
     snackOrStolen: '',
     cyclosporineTaken: false,
     cyclosporineNote: '',
@@ -1064,6 +1065,7 @@ function renderDaily(container) {
   const weatherOptions = WEATHER_OPTIONS.map(l => `<option value="${l}" ${(prefill.weather || '') === l ? 'selected' : ''}>${l}</option>`).join('');
   const humidityOptions = HUMIDITY_LEVELS.map(l => `<option value="${l}" ${(prefill.humidity || '') === l ? 'selected' : ''}>${l}</option>`).join('');
   const tempRangeOptions = TEMP_RANGES.map(l => `<option value="${l}" ${(prefill.tempRange || '') === l ? 'selected' : ''}>${l}</option>`).join('');
+  const foodOptions = FOOD_OPTIONS.map(l => `<option value="${l}" ${(prefill.foodIntake || '兔肉粮和冻干') === l ? 'selected' : ''}>${l}</option>`).join('');
 
   // 历史日志（分页）
   const historyHtml = renderDailyHistory();
@@ -1073,7 +1075,6 @@ function renderDaily(container) {
       <div class="daily-header">
         <h2>每日记录</h2>
         <span class="daily-hint">${existingToday ? '已有记录，修改后覆盖' : '预填前日数据，改变化项即可'}</span>
-        <button type="submit" form="daily-form" class="btn btn-primary btn-sm daily-save-btn">${existingToday ? '更新记录' : '保存记录'}</button>
       </div>
       <form id="daily-form">
         <div class="dc-row dc-row-4">
@@ -1117,7 +1118,7 @@ function renderDaily(container) {
           </div>
           <div class="dc-field">
             <label>食物</label>
-            <input type="text" name="foodIntake" value="${escapeHtml(prefill.foodIntake)}" placeholder="皇家水解蛋白…">
+            <select name="foodIntake">${foodOptions}</select>
           </div>
           <div class="dc-field">
             <label>零食/偷吃</label>
@@ -1181,9 +1182,6 @@ function renderDaily(container) {
               <label>环境变化</label>
               <input type="text" name="envChange" value="${escapeHtml(prefill.envChange)}" placeholder="换猫砂、新家具…">
             </div>
-                ${humidityOptions}
-              </select>
-            </div>
           </div>
           <div class="dc-row dc-row-1" style="margin-top:0.35rem">
             <div class="dc-field dc-warn">
@@ -1205,6 +1203,7 @@ function renderDaily(container) {
             </div>
           </div>
         </details>
+        <button type="submit" class="btn btn-primary daily-save-btn-bottom">${existingToday ? '更新记录' : '保存记录'}</button>
       </form>
     </section>
     <section class="section">

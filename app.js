@@ -2074,6 +2074,7 @@ let _ignoreNextSnapshot = false;
 
 function syncToFirebase() {
   if (!_firebaseReady || !window._firebase) return;
+  if (!window._auth || !window._auth.auth.currentUser) return; // must be logged in
   clearTimeout(_firebaseSyncTimer);
   _firebaseSyncTimer = setTimeout(async () => {
     try {
@@ -2094,6 +2095,7 @@ function syncToFirebase() {
 
 async function loadFromFirebase() {
   if (!window._firebase) return false;
+  if (!window._auth || !window._auth.auth.currentUser) return false; // must be logged in
   try {
     const snap = await window._firebase.getDoc(window._firebase.DOC_REF);
     if (snap.exists()) {
@@ -2183,15 +2185,24 @@ function initFirebaseSync() {
 
 // ───────── 登录管理 ─────────
 function initAuth() {
-  const ready = () => {
+  const ready = async () => {
     const { auth, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, ALLOWED_EMAIL } = window._auth;
 
-    // Handle redirect result (for mobile)
-    getRedirectResult(auth).catch(() => {});
+    // Show loading while checking redirect result on mobile
+    const loginScreen = document.getElementById('login-screen');
+    const appShell = document.getElementById('app-shell');
+    const loginBtn = document.getElementById('google-login-btn');
+
+    try {
+      const result = await getRedirectResult(auth);
+      if (result && result.user) {
+        // redirect login completed — onAuthStateChanged will fire next
+      }
+    } catch (err) {
+      console.warn('getRedirectResult error:', err);
+    }
 
     onAuthStateChanged(auth, (user) => {
-      const loginScreen = document.getElementById('login-screen');
-      const appShell = document.getElementById('app-shell');
       if (user && user.email === ALLOWED_EMAIL) {
         loginScreen.style.display = 'none';
         appShell.style.display = '';
@@ -2200,6 +2211,8 @@ function initAuth() {
         const { signOut } = window._auth;
         signOut(auth);
         document.getElementById('login-error').textContent = '该账号无权限访问，请使用授权邮箱登录';
+        loginScreen.style.display = '';
+        appShell.style.display = 'none';
       } else {
         loginScreen.style.display = '';
         appShell.style.display = 'none';
@@ -2207,11 +2220,12 @@ function initAuth() {
     });
 
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const loginBtn = document.getElementById('google-login-btn');
     if (loginBtn) {
       loginBtn.onclick = async () => {
         const provider = new GoogleAuthProvider();
         document.getElementById('login-error').textContent = '';
+        loginBtn.disabled = true;
+        loginBtn.textContent = '登录中...';
         if (isMobile) {
           signInWithRedirect(auth, provider);
         } else {
@@ -2221,7 +2235,9 @@ function initAuth() {
             if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
               signInWithRedirect(auth, provider);
             } else {
-              document.getElementById('login-error').textContent = '登录失败: ' + (err.message || '请重试');
+              document.getElementById('login-error').textContent = '登录失败，请重试';
+              loginBtn.disabled = false;
+              loginBtn.textContent = 'Google 登录';
             }
           }
         }
@@ -2235,6 +2251,7 @@ function initAuth() {
 
 function handleLogout() {
   if (!window._auth) return;
+  _appInitialized = false; // allow re-init on next login
   window._auth.signOut(window._auth.auth);
 }
 

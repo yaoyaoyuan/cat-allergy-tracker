@@ -8,8 +8,13 @@
 </head>
 <body>
 
+  <!-- 启动加载遮罩（auth 状态未知时显示） -->
+  <div id="auth-loading" class="auth-loading">
+    <div class="auth-loading-inner">🐱<br><span>加载中…</span></div>
+  </div>
+
   <!-- 登录页面 -->
-  <div id="login-screen" class="login-screen">
+  <div id="login-screen" class="login-screen" style="display:none">
     <div class="login-card">
       <div class="login-icon">🐱</div>
       <h1 class="login-title">Amber 过敏记录</h1>

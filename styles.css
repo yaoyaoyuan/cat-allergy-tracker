@@ -45,6 +45,24 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ───────── Auth Loading Overlay ───────── */
+.auth-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  z-index: 300;
+}
+.auth-loading-inner {
+  text-align: center;
+  font-size: 2rem;
+  color: var(--text-tertiary);
+  line-height: 1.8;
+}
+.auth-loading-inner span { font-size: 0.85rem; }
+
 /* ───────── Login Screen ───────── */
 .login-screen {
   position: fixed;

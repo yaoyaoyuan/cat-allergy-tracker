@@ -2085,6 +2085,7 @@ function syncToFirebase() {
         device: navigator.userAgent.substring(0, 80)
       });
       appData._updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); // persist _updatedAt
       updateSyncIndicator('synced');
     } catch (e) {
       updateSyncIndicator('error');
@@ -2184,74 +2185,79 @@ function initFirebaseSync() {
 }
 
 // ───────── 登录管理 ─────────
+function showAuthLoading() {
+  document.getElementById('auth-loading').style.display = '';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'none';
+}
+
+function showLoginScreen(errorMsg) {
+  document.getElementById('auth-loading').style.display = 'none';
+  document.getElementById('login-screen').style.display = '';
+  document.getElementById('app-shell').style.display = 'none';
+  if (errorMsg !== undefined) document.getElementById('login-error').textContent = errorMsg;
+}
+
+function showApp() {
+  document.getElementById('auth-loading').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = '';
+  initApp();
+}
+
 function initAuth() {
-  const ready = async () => {
-    const { auth, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, ALLOWED_EMAIL } = window._auth;
+  const ready = () => {
+    const { auth, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, ALLOWED_EMAIL } = window._auth;
 
-    // Show loading while checking redirect result on mobile
-    const loginScreen = document.getElementById('login-screen');
-    const appShell = document.getElementById('app-shell');
-    const loginBtn = document.getElementById('google-login-btn');
-
-    try {
-      const result = await getRedirectResult(auth);
-      if (result && result.user) {
-        // redirect login completed — onAuthStateChanged will fire next
-      }
-    } catch (err) {
-      console.warn('getRedirectResult error:', err);
-    }
-
+    // Listen for auth state changes — fires immediately with cached session
     onAuthStateChanged(auth, (user) => {
       if (user && user.email === ALLOWED_EMAIL) {
-        loginScreen.style.display = 'none';
-        appShell.style.display = '';
-        initApp();
+        showApp();
       } else if (user) {
-        const { signOut } = window._auth;
         signOut(auth);
-        document.getElementById('login-error').textContent = '该账号无权限访问，请使用授权邮箱登录';
-        loginScreen.style.display = '';
-        appShell.style.display = 'none';
+        showLoginScreen('该账号无权限访问，请使用授权邮箱登录');
       } else {
-        loginScreen.style.display = '';
-        appShell.style.display = 'none';
+        showLoginScreen('');
       }
     });
 
+    // Set up login button
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const loginBtn = document.getElementById('google-login-btn');
     if (loginBtn) {
-      loginBtn.onclick = async () => {
+      loginBtn.onclick = () => {
         const provider = new GoogleAuthProvider();
-        document.getElementById('login-error').textContent = '';
-        loginBtn.disabled = true;
-        loginBtn.textContent = '登录中...';
+        showAuthLoading();
         if (isMobile) {
           signInWithRedirect(auth, provider);
         } else {
-          try {
-            await signInWithPopup(auth, provider);
-          } catch (err) {
+          signInWithPopup(auth, provider).catch((err) => {
             if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
               signInWithRedirect(auth, provider);
             } else {
-              document.getElementById('login-error').textContent = '登录失败，请重试';
-              loginBtn.disabled = false;
-              loginBtn.textContent = 'Google 登录';
+              showLoginScreen('登录失败，请重试');
             }
-          }
+          });
         }
       };
     }
   };
 
   if (window._auth) ready();
-  else window.addEventListener('firebase-ready', ready);
+  else window.addEventListener('firebase-ready', () => ready());
+
+  // Safety timeout: if auth-loading is still visible after 5s, show login screen
+  setTimeout(() => {
+    const loadingEl = document.getElementById('auth-loading');
+    if (loadingEl && loadingEl.style.display !== 'none') {
+      showLoginScreen('');
+    }
+  }, 5000);
 }
 
 function handleLogout() {
   if (!window._auth) return;
-  _appInitialized = false; // allow re-init on next login
+  _appInitialized = false;
   window._auth.signOut(window._auth.auth);
 }
 

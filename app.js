@@ -2206,19 +2206,10 @@ function showApp() {
 }
 
 function initAuth() {
-  const ready = async () => {
-    const { auth, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, GoogleAuthProvider, ALLOWED_EMAIL } = window._auth;
+  const ready = () => {
+    const { auth, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, ALLOWED_EMAIL } = window._auth;
 
-    showAuthLoading();
-
-    // Handle redirect result first (required for mobile login to complete)
-    try {
-      await getRedirectResult(auth);
-    } catch (err) {
-      console.warn('getRedirectResult error:', err);
-    }
-
-    // onAuthStateChanged fires immediately with cached session or after redirect
+    // Listen for auth state changes — fires immediately with cached session
     onAuthStateChanged(auth, (user) => {
       if (user && user.email === ALLOWED_EMAIL) {
         showApp();
@@ -2230,24 +2221,23 @@ function initAuth() {
       }
     });
 
+    // Set up login button
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const loginBtn = document.getElementById('google-login-btn');
     if (loginBtn) {
-      loginBtn.onclick = async () => {
+      loginBtn.onclick = () => {
         const provider = new GoogleAuthProvider();
         showAuthLoading();
         if (isMobile) {
-          await signInWithRedirect(auth, provider);
+          signInWithRedirect(auth, provider);
         } else {
-          try {
-            await signInWithPopup(auth, provider);
-          } catch (err) {
+          signInWithPopup(auth, provider).catch((err) => {
             if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
-              await signInWithRedirect(auth, provider);
+              signInWithRedirect(auth, provider);
             } else {
               showLoginScreen('登录失败，请重试');
             }
-          }
+          });
         }
       };
     }
@@ -2255,6 +2245,14 @@ function initAuth() {
 
   if (window._auth) ready();
   else window.addEventListener('firebase-ready', () => ready());
+
+  // Safety timeout: if auth-loading is still visible after 5s, show login screen
+  setTimeout(() => {
+    const loadingEl = document.getElementById('auth-loading');
+    if (loadingEl && loadingEl.style.display !== 'none') {
+      showLoginScreen('');
+    }
+  }, 5000);
 }
 
 function handleLogout() {

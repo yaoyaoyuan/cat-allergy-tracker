@@ -1274,12 +1274,12 @@ function renderDailyHistory() {
     if (isEditing) {
       return `<tr class="log-edit-row">
         <td><input type="date" class="edit-input" value="${l.date}" data-field="date" data-orig="${l.date}"></td>
+        <td style="white-space:nowrap"><label style="display:inline-flex;align-items:center;gap:3px;font-size:0.82rem"><input type="checkbox" class="edit-input" data-field="cyclosporineTaken" ${l.cyclosporineTaken ? 'checked' : ''}> 环孢素</label> <input type="text" class="edit-input" value="${escapeHtml(l.cyclosporineNote || '')}" data-field="cyclosporineNote" placeholder="0.3ml" style="width:60px"> <input type="text" class="edit-input" value="${escapeHtml(l.otherMeds || '')}" data-field="otherMeds" placeholder="其他药" style="width:70px"></td>
         <td><select class="edit-input" data-field="scratchLevel">${scratchOpts(l.scratchLevel)}</select></td>
         <td><select class="edit-input" data-field="skinAppearance">${skinOpts(l.skinAppearance)}</select></td>
         <td><select class="edit-input" data-field="earSymptom">${earOpts(l.earSymptom)}</select></td>
         <td><select class="edit-input" data-field="stoolScore">${stoolOpts(l.stoolScore)}</select></td>
         <td><input type="text" class="edit-input" value="${escapeHtml(l.foodIntake)}" data-field="foodIntake"></td>
-        <td style="white-space:nowrap"><label style="display:inline-flex;align-items:center;gap:3px;font-size:0.82rem"><input type="checkbox" class="edit-input" data-field="cyclosporineTaken" ${l.cyclosporineTaken ? 'checked' : ''}> 环孢素</label> <input type="text" class="edit-input" value="${escapeHtml(l.cyclosporineNote || '')}" data-field="cyclosporineNote" placeholder="0.3ml" style="width:60px"> <input type="text" class="edit-input" value="${escapeHtml(l.otherMeds || '')}" data-field="otherMeds" placeholder="其他药" style="width:70px"></td>
         <td><select class="edit-input" data-field="weather"><option value="">—</option>${weatherOpts(l.weather)}</select></td>
         <td><select class="edit-input" data-field="humidity"><option value="">—</option>${humidityOpts(l.humidity)}</select></td>
         <td><select class="edit-input" data-field="tempRange"><option value="">—</option>${tempOpts(l.tempRange)}</select></td>
@@ -1292,12 +1292,12 @@ function renderDailyHistory() {
     }
     return `<tr class="${l.strictnessViolated ? 'log-contaminated' : ''}">
       <td class="log-date">${l.date}</td>
+      <td>${l.cyclosporineTaken ? '✅ ' + escapeHtml(l.cyclosporineNote || '') : '—'}${l.otherMeds ? ' / ' + escapeHtml(l.otherMeds) : ''}</td>
       <td>${escapeHtml(l.scratchLevel)}</td>
       <td>${escapeHtml(l.skinAppearance || '—')}</td>
       <td>${escapeHtml(l.earSymptom)}</td>
       <td>${escapeHtml(l.stoolScore)}</td>
-      <td class="log-food-cell">${escapeHtml(l.foodIntake)}${l.snackOrStolen ? ' <span class="badge badge-warn">零食</span>' : ''}${l.strictnessViolated ? ' <span class="badge badge-warn">⚠️</span>' : ''}</td>
-      <td>${l.cyclosporineTaken ? '✅ ' + escapeHtml(l.cyclosporineNote || '') : '—'}${l.otherMeds ? ' / ' + escapeHtml(l.otherMeds) : ''}</td>
+      <td class="log-food-cell">${escapeHtml(l.foodIntake)}${l.strictnessViolated ? ' <span class="badge badge-warn">⚠️</span>' : ''}${l.snackOrStolen ? `<div class="snack-line"><span class="badge badge-warn">零食</span> ${escapeHtml(l.snackOrStolen)}</div>` : ''}</td>
       <td>${escapeHtml(l.weather || '—')}</td>
       <td>${escapeHtml(l.humidity || '—')}</td>
       <td>${escapeHtml(l.tempRange || '—')}</td>
@@ -1329,7 +1329,7 @@ function renderDailyHistory() {
     <div class="table-wrap">
       <table class="summary-table log-history-table">
         <thead><tr>
-          <th>日期</th><th>抓挠</th><th>皮肤</th><th>耳部</th><th>便便</th><th>饮食</th><th>服药</th><th>天气</th><th>湿度</th><th>气温</th><th>备注</th><th>操作</th>
+          <th>日期</th><th>服药</th><th>抓挠</th><th>皮肤</th><th>耳部</th><th>便便</th><th>饮食</th><th>天气</th><th>湿度</th><th>气温</th><th>备注</th><th>操作</th>
         </tr></thead>
         <tbody>${rowsHtml}</tbody>
       </table>

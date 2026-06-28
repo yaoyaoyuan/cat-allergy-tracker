@@ -1279,7 +1279,7 @@ function renderDailyHistory() {
         <td><select class="edit-input" data-field="skinAppearance">${skinOpts(l.skinAppearance)}</select></td>
         <td><select class="edit-input" data-field="earSymptom">${earOpts(l.earSymptom)}</select></td>
         <td><select class="edit-input" data-field="stoolScore">${stoolOpts(l.stoolScore)}</select></td>
-        <td><input type="text" class="edit-input" value="${escapeHtml(l.foodIntake)}" data-field="foodIntake"></td>
+        <td><input type="text" class="edit-input" value="${escapeHtml(l.foodIntake)}" data-field="foodIntake"><input type="text" class="edit-input" value="${escapeHtml(l.snackOrStolen || '')}" data-field="snackOrStolen" placeholder="零食/偷吃" style="margin-top:3px"></td>
         <td><select class="edit-input" data-field="weather"><option value="">—</option>${weatherOpts(l.weather)}</select></td>
         <td><select class="edit-input" data-field="humidity"><option value="">—</option>${humidityOpts(l.humidity)}</select></td>
         <td><select class="edit-input" data-field="tempRange"><option value="">—</option>${tempOpts(l.tempRange)}</select></td>
@@ -1297,7 +1297,7 @@ function renderDailyHistory() {
       <td>${escapeHtml(l.skinAppearance || '—')}</td>
       <td>${escapeHtml(l.earSymptom)}</td>
       <td>${escapeHtml(l.stoolScore)}</td>
-      <td class="log-food-cell">${escapeHtml(l.foodIntake)}${l.strictnessViolated ? ' <span class="badge badge-warn">⚠️</span>' : ''}${l.snackOrStolen ? `<div class="snack-line"><span class="badge badge-warn">零食</span> ${escapeHtml(l.snackOrStolen)}</div>` : ''}</td>
+      <td class="log-food-cell">${escapeHtml(l.foodIntake)}${l.strictnessViolated ? ' <span class="badge badge-warn">⚠️</span>' : ''}${l.snackOrStolen ? ` <span class="snack-line">· 零食：${escapeHtml(l.snackOrStolen)}</span>` : ''}</td>
       <td>${escapeHtml(l.weather || '—')}</td>
       <td>${escapeHtml(l.humidity || '—')}</td>
       <td>${escapeHtml(l.tempRange || '—')}</td>
@@ -1364,6 +1364,7 @@ function saveEditLog(origDate) {
   if (vals.earSymptom) log.earSymptom = vals.earSymptom;
   if (vals.stoolScore) log.stoolScore = vals.stoolScore;
   if (vals.foodIntake !== undefined) log.foodIntake = vals.foodIntake;
+  if (vals.snackOrStolen !== undefined) log.snackOrStolen = vals.snackOrStolen;
   // 服药
   const cycloCheckbox = row.querySelector('[data-field="cyclosporineTaken"]');
   if (cycloCheckbox) log.cyclosporineTaken = cycloCheckbox.checked;

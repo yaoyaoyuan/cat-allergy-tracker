@@ -654,7 +654,7 @@ input.edit-input[type="date"]::-webkit-calendar-picker-indicator {
 .badge-warn { background: var(--warning-light); color: var(--warning); }
 
 /* ───────── History Table ───────── */
-.log-history-table { font-size: 0.78rem; }
+.log-history-table { font-size: 0.78rem; min-width: 960px; }
 .log-history-table th {
   white-space: nowrap;
   position: sticky;
@@ -662,12 +662,13 @@ input.edit-input[type="date"]::-webkit-calendar-picker-indicator {
   background: var(--surface-hover);
   z-index: 1;
 }
-.log-history-table td { vertical-align: middle; padding: 6px 8px; }
-.log-notes-cell { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.log-food-cell { max-width: 180px; white-space: normal; word-break: break-word; }
-.snack-line { margin-top: 3px; font-size: 0.72rem; color: var(--text-secondary); line-height: 1.3; }
+.log-history-table td { vertical-align: middle; padding: 6px 8px; white-space: nowrap; }
+.log-notes-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log-food-cell { white-space: nowrap; }
+.snack-line { font-size: 0.72rem; color: var(--warning); }
 .log-notes-cell { color: var(--text-secondary); font-size: 0.76rem; }
-.log-actions-cell { white-space: nowrap; display: flex; gap: 4px; }
+.log-actions-cell { white-space: nowrap; vertical-align: middle; }
+.log-actions-cell .btn + .btn { margin-left: 4px; }
 .text-muted { color: var(--text-tertiary); }
 
 .log-edit-row td { background: var(--accent-light); }

@@ -2207,7 +2207,24 @@ function showApp() {
 
 function initAuth() {
   const ready = () => {
-    const { auth, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, ALLOWED_EMAIL } = window._auth;
+    const { auth, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, signOut, GoogleAuthProvider, ALLOWED_EMAIL } = window._auth;
+
+    // Explicitly persist auth in local browser storage so sessions survive app restarts.
+    setPersistence(auth, browserLocalPersistence).catch(() => {
+      // Ignore and continue; Firebase will fall back to its default behavior.
+    });
+
+    // Handle redirect login result for mobile browsers.
+    getRedirectResult(auth).then((result) => {
+      if (result && result.user && result.user.email !== ALLOWED_EMAIL) {
+        signOut(auth);
+        showLoginScreen('该账号无权限访问，请使用授权邮箱登录');
+      }
+    }).catch((err) => {
+      if (err && err.code !== 'auth/no-auth-event') {
+        showLoginScreen('登录返回失败，请重试');
+      }
+    });
 
     // Listen for auth state changes — fires immediately with cached session
     onAuthStateChanged(auth, (user) => {
@@ -2221,24 +2238,20 @@ function initAuth() {
       }
     });
 
-    // Set up login button
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    // Set up login button — popup first on all devices (more reliable session
+    // persistence on mobile), fall back to redirect only if the popup is blocked.
     const loginBtn = document.getElementById('google-login-btn');
     if (loginBtn) {
       loginBtn.onclick = () => {
         const provider = new GoogleAuthProvider();
         showAuthLoading();
-        if (isMobile) {
-          signInWithRedirect(auth, provider);
-        } else {
-          signInWithPopup(auth, provider).catch((err) => {
-            if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
-              signInWithRedirect(auth, provider);
-            } else {
-              showLoginScreen('登录失败，请重试');
-            }
-          });
-        }
+        signInWithPopup(auth, provider).catch((err) => {
+          if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
+            signInWithRedirect(auth, provider);
+          } else {
+            showLoginScreen('登录失败，请重试');
+          }
+        });
       };
     }
   };
@@ -2246,13 +2259,13 @@ function initAuth() {
   if (window._auth) ready();
   else window.addEventListener('firebase-ready', () => ready());
 
-  // Safety timeout: if auth-loading is still visible after 5s, show login screen
+  // Safety timeout: if auth-loading is still visible after 12s, show login screen
   setTimeout(() => {
     const loadingEl = document.getElementById('auth-loading');
     if (loadingEl && loadingEl.style.display !== 'none') {
       showLoginScreen('');
     }
-  }, 5000);
+  }, 12000);
 }
 
 function handleLogout() {

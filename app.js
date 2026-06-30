@@ -1279,7 +1279,7 @@ function renderDailyHistory() {
         <td><select class="edit-input" data-field="skinAppearance">${skinOpts(l.skinAppearance)}</select></td>
         <td><select class="edit-input" data-field="earSymptom">${earOpts(l.earSymptom)}</select></td>
         <td><select class="edit-input" data-field="stoolScore">${stoolOpts(l.stoolScore)}</select></td>
-        <td><input type="text" class="edit-input" value="${escapeHtml(l.foodIntake)}" data-field="foodIntake"><input type="text" class="edit-input" value="${escapeHtml(l.snackOrStolen || '')}" data-field="snackOrStolen" placeholder="零食/偷吃" style="margin-top:3px"></td>
+        <td><div style="display:flex;flex-direction:column;gap:3px;min-width:140px"><input type="text" class="edit-input" value="${escapeHtml(l.foodIntake)}" data-field="foodIntake"><input type="text" class="edit-input" value="${escapeHtml(l.snackOrStolen || '')}" data-field="snackOrStolen" placeholder="零食/偷吃"></div></td>
         <td><select class="edit-input" data-field="weather"><option value="">—</option>${weatherOpts(l.weather)}</select></td>
         <td><select class="edit-input" data-field="humidity"><option value="">—</option>${humidityOpts(l.humidity)}</select></td>
         <td><select class="edit-input" data-field="tempRange"><option value="">—</option>${tempOpts(l.tempRange)}</select></td>

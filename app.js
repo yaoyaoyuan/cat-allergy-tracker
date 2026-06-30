@@ -1297,7 +1297,7 @@ function renderDailyHistory() {
       <td>${escapeHtml(l.skinAppearance || '—')}</td>
       <td>${escapeHtml(l.earSymptom)}</td>
       <td>${escapeHtml(l.stoolScore)}</td>
-      <td class="log-food-cell">${escapeHtml(l.foodIntake)}${l.strictnessViolated ? ' <span class="badge badge-warn">⚠️</span>' : ''}${l.snackOrStolen ? ` <span class="snack-line">· 零食：${escapeHtml(l.snackOrStolen)}</span>` : ''}</td>
+      <td class="log-food-cell">${escapeHtml(l.foodIntake)}${l.strictnessViolated ? ' <span class="badge badge-warn">⚠️</span>' : ''}${l.snackOrStolen ? ` <span class="snack-line">· ${escapeHtml(l.snackOrStolen)}</span>` : ''}</td>
       <td>${escapeHtml(l.weather || '—')}</td>
       <td>${escapeHtml(l.humidity || '—')}</td>
       <td>${escapeHtml(l.tempRange || '—')}</td>
